@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
-import 'package:time_tracking_to_do/core/timer_in_minutes.dart';
+import 'package:time_tracking_to_do/core/utils/helpers.dart';
 import 'package:time_tracking_to_do/data/mapper/task_mapper.dart';
 import 'package:time_tracking_to_do/data/models/task_duration_model.dart';
 import 'package:time_tracking_to_do/data/models/task_model.dart';
