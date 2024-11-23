@@ -1,0 +1,35 @@
+name: BuildAndDeliverAPK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17.x'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Clean Flutter Dependencies.
+        run: flutter clean
+
+      - name: Get Flutter Dependencies.
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
