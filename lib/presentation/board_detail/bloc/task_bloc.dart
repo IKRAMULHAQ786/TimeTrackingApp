@@ -1,9 +1,6 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:time_tracking_to_do/core/timer_in_minutes.dart';
-import 'package:time_tracking_to_do/core/utils/constants.dart';
-import 'package:time_tracking_to_do/data/data_sources/remote/todoist_api_service.dart';
 import 'package:time_tracking_to_do/data/mapper/task_mapper.dart';
 import 'package:time_tracking_to_do/data/models/task_duration_model.dart';
 import 'package:time_tracking_to_do/data/models/task_model.dart';
@@ -47,7 +44,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   /// with the list of tasks.
   Future<void> _onLoadTasks(
       LoadTasksEvent event, Emitter<TaskState> emit) async {
-    if(!event.fromUpdate) {
+    if (event.shouldDisplayLoader) {
       emit(state.copyWith(isLoading: true, loadingMessage: 'Fetching Tasks..'));
     }
     final tasks = await getTasksUseCase(NoParams());
@@ -58,6 +55,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   /// Handles adding a new task by calling the `addTaskUseCase` and triggering
   /// a reload of the task list after the task is added.
   Future<void> _onAddTask(AddTaskEvent event, Emitter<TaskState> emit) async {
+    emit(state.copyWith(isLoading: true, loadingMessage: 'Adding Task..'));
     await addTaskUseCase(TaskEntity(
       id: '',
       content: event.title,
@@ -66,7 +64,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       labels: ['todo'],
       isCompleted: false,
     ));
-    add(LoadTasksEvent());
+    add(LoadTasksEvent(shouldDisplayLoader: false));
   }
 
   /// Handles updating an existing task by calling the `updateTaskUseCase`
@@ -84,15 +82,34 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       emit(state.copyWith(selectedTask: updatedTask, isLoading: false));
     }
 
-    add(LoadTasksEvent(fromUpdate: event.fromDetailsPage));
+    add(LoadTasksEvent(shouldDisplayLoader: !event.fromDetailsPage));
   }
 
   /// Handles moving a task to a new status by calling the `moveTaskUseCase`
   /// and then triggering a reload of the task list after the move is successful.
   Future<void> _onMoveTask(MoveTaskEvent event, Emitter<TaskState> emit) async {
+    emit(state.copyWith(isLoading: true, loadingMessage: 'Updating Task Status'));
+    /// Update the status of the task
     await moveTaskUseCase(
         MoveTaskParams(taskId: event.taskId, newStatus: event.newStatus));
-    add(LoadTasksEvent());
+
+    /// Fetch the index of the task being moved
+    final taskIndex = state.tasks.indexWhere((t) => t.id == event.taskId);
+
+    if (taskIndex != -1) {
+      // Create a copy of the task with the updated status
+      final updatedTask = state.tasks[taskIndex].copyWith(labels: [event.newStatus]);
+
+      // Update the list of tasks with the updated task
+      final updatedTasks = List<TaskModel>.from(state.tasks)
+        ..[taskIndex] = updatedTask; // Replace the task at the found index
+
+      // Update the state
+      emit(state.copyWith(isLoading: false, tasks: updatedTasks));
+    } else {
+      // Handle the case where the task was not found, if necessary
+      emit(state.copyWith(isLoading: false)); // or some other appropriate action
+    }
   }
 
   /// Handles deleting a task by calling the `deleteTaskUseCase` and then
@@ -153,15 +170,11 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       return t.id == task.id ? updatedTask : t;
     }).toList();
 
-    ApiService apiService = ApiService();
-    final response = await apiService.postRequest(
-      ApiEndpoints.updateTask(event.taskId),
-      updatedTask.toJson(),
-    );
-    response.fold(
-      (failure) => emit(state.copyWith(errorMessage: failure.message)),
-      (success) => emit(state.copyWith(tasks: updatedTasks)),
-    );
+    /// call the update task use-case
+    await updateTaskUseCase(updatedTask.toEntity());
+
+    /// update the state
+    emit(state.copyWith(tasks: updatedTasks, selectedTask: updatedTask));
   }
 
   FutureOr<void> _onTicketSelected(

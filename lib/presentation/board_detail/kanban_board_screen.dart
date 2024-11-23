@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:time_tracking_to_do/data/models/status_enum.dart';
 import 'package:time_tracking_to_do/presentation/board_detail/bloc/task_bloc.dart';
 import 'package:time_tracking_to_do/presentation/widgets/add_task_dialog.dart';
@@ -21,11 +20,18 @@ class KanbanBoardScreen extends StatelessWidget {
           title: const Text('Task Board'),
           backgroundColor: Colors.blueGrey,
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => _showAddTaskDialog(context),
-          shape: const CircleBorder(),
-          backgroundColor: Colors.blueGrey,
-          child: const Icon(Icons.add, color: Colors.white),
+        floatingActionButton: BlocBuilder<TaskBloc, TaskState>(
+          builder: (context, state) {
+            if (state.isLoading) {
+              return const SizedBox();
+            }
+            return FloatingActionButton(
+              onPressed: () => _showAddTaskDialog(context),
+              shape: const CircleBorder(),
+              backgroundColor: Colors.blueGrey,
+              child: const Icon(Icons.add, color: Colors.white),
+            );
+          },
         ),
         body: const KanbanBoard());
   }

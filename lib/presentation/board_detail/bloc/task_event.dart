@@ -6,9 +6,9 @@ abstract class TaskEvent {}
 
 /// Event triggered to load tasks from the data source and update the task list in the state.
 class LoadTasksEvent extends TaskEvent {
-  final bool fromUpdate;
+  final bool shouldDisplayLoader;
 
-  LoadTasksEvent({this.fromUpdate = false});
+  LoadTasksEvent({this.shouldDisplayLoader = true});
 }
 
 /// Event triggered to add a new task with the provided `title` and `description`.
