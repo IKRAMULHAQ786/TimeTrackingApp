@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:time_tracking_to_do/core/utils/helpers.dart';
 import 'package:time_tracking_to_do/presentation/widgets/add_comment_field.dart';
 import 'package:time_tracking_to_do/presentation/widgets/comments_widget.dart';
 import 'package:time_tracking_to_do/presentation/widgets/loader_widget.dart';
