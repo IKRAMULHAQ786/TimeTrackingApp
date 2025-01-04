@@ -10,7 +10,7 @@ class ApiService {
 
   /// GET request
   Future<Either<Failure, http.Response>> getRequest(String endpoint) async {
-    final url = Uri.parse('${ApiEndpoints.baseUrl}$endpoint');
+    final url = Uri.parse('$baseUrl$endpoint');
     try {
       final response = await http.get(
         url,

@@ -16,32 +16,36 @@ void setupDependencyInjection() {
   /// Register ApiService
   sl.registerLazySingleton<ApiService>(() => ApiService());
 
-  /// Data Layer
-  sl.registerLazySingleton<TaskRepository>(
-      () => TaskRepositoryImpl(apiService: sl()));
-  /// Register CommentRepo and its implementation
-  sl.registerLazySingleton<CommentRepo>(() => CommentRepoImpl(apiService: sl()));
+  /// Register Data Layer Repositories
+  ///
+  /// Register TaskRepo
+  sl.registerLazySingleton<TaskRepository>(() => TaskRepositoryImpl(apiService: sl<ApiService>()));
+  /// Register CommentRepo
+  sl.registerLazySingleton<CommentRepo>(() => CommentRepoImpl(apiService: sl<ApiService>()));
 
   /// Register Use Cases
+  ///
+  /// Comment User Cases
   sl.registerLazySingleton<FetchCommentsUseCase>(() => FetchCommentsUseCase(sl<CommentRepo>()));
   sl.registerLazySingleton<SendCommentUseCase>(() => SendCommentUseCase(sl<CommentRepo>()));
-  /// Use Cases
-  sl.registerLazySingleton(() => GetTasksUseCase(sl()));
-  sl.registerLazySingleton(() => AddTaskUseCase(sl()));
-  sl.registerLazySingleton(() => UpdateTaskUseCase(sl()));
-  sl.registerLazySingleton(() => MoveTaskUseCase(sl()));
-  sl.registerLazySingleton(() => DeleteTaskUseCase(sl()));
-
-  /// BLoC
-  sl.registerFactory(() => TaskBloc(
-        getTasksUseCase: sl(),
-        addTaskUseCase: sl(),
-        updateTaskUseCase: sl(),
-        moveTaskUseCase: sl(),
-        deleteTaskUseCase: sl(),
-      ));
+  /// Task Use Cases
+  sl.registerLazySingleton<GetTasksUseCase>(() => GetTasksUseCase(sl()));
+  sl.registerLazySingleton<AddTaskUseCase>(() => AddTaskUseCase(sl()));
+  sl.registerLazySingleton<UpdateTaskUseCase>(() => UpdateTaskUseCase(sl()));
+  sl.registerLazySingleton<MoveTaskUseCase>(() => MoveTaskUseCase(sl()));
+  sl.registerLazySingleton<DeleteTaskUseCase>(() => DeleteTaskUseCase(sl()));
 
   /// Register Bloc
+  ///
+  ///TaskBloc
+  sl.registerFactory<TaskBloc>(() => TaskBloc(
+        getTasksUseCase: sl<GetTasksUseCase>(),
+        addTaskUseCase: sl<AddTaskUseCase>(),
+        updateTaskUseCase: sl<UpdateTaskUseCase>(),
+        moveTaskUseCase: sl<MoveTaskUseCase>(),
+        deleteTaskUseCase: sl<DeleteTaskUseCase>(),
+      ));
+  ///CommentBloc
   sl.registerFactory<CommentBloc>(() => CommentBloc(
     fetchCommentsUseCase: sl<FetchCommentsUseCase>(),
     sendCommentUseCase: sl<SendCommentUseCase>(),
